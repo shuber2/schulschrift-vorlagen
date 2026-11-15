@@ -1,0 +1,55 @@
+# Baut alle Dokumente mit latexmk. Die PDFs gibt es bei jedem Lauf als
+# Artifact, und bei einem Tag v* als Anhang eines Release.
+name: PDFs bauen
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: oesch von CTAN installieren
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq ca-certificates curl unzip
+          cd "$(mktemp -d)"
+          # mirrors.ctan.org leitet auf einen zufälligen Spiegel weiter, der
+          # nicht immer erreichbar ist; bei jedem Versuch ist es ein anderer
+          for i in 1 2 3 4 5; do
+            curl -sSLO https://mirrors.ctan.org/fonts/oesch.zip && break
+            sleep 5
+          done
+          unzip -q oesch.zip
+          T="$(kpsewhich -var-value TEXMFHOME)"
+          mkdir -p "$T/tex/latex/oesch" "$T/fonts/source/public/oesch"
+          cp oesch/oesch.sty oesch/oe.def "$T/tex/latex/oesch/"
+          cp oesch/*.mf "$T/fonts/source/public/oesch/"
+
+      - name: Dokumente bauen
+        run: latexmk
+
+      - name: PDFs sammeln
+        run: |
+          mkdir dist
+          cp templates/*.pdf doc/*.pdf dist/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pdfs
+          path: dist/*.pdf
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.pdf

@@ -1,0 +1,4 @@
+# Das Paket liegt in tex/, eine Ebene höher
+ensure_path('TEXINPUTS', '../tex/');
+# pdfLaTeX
+$pdf_mode = 1;

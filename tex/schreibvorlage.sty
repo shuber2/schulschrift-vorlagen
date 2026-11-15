@@ -1,0 +1,167 @@
+% Schreibvorlagen für die Österreichische Schulschrift 1995 auf A4.
+%
+% Lineaturen: gross (Bänder zu 5 mm, 13 Zeilen pro Seite), klein (Bänder zu
+% 4 mm, 17 Zeilen pro Seite) oder keine (Seiten mit gewöhnlichem Text). Die
+% Paketoption wählt die Lineatur am Anfang, Voreinstellung ist gross. Die
+% Ränder sind für den doppelseitigen Druck gespiegelt; der breitere Rand liegt
+% bei der Lochung.
+%
+% Der Rahmen jeder Zeile ist hell und dünn, die Grundlinie kräftig, damit das
+% Auge beim Schreiben auf Mittelband und Grundlinie bleibt. Die Option
+% klassisch zeichnet alle Linien schwarz wie in den Heften der Schule.
+%
+% Befehle:
+%   \lineatur{...}    neue Seite mit Lineatur gross, klein oder keine
+%   \zeile{...}       eine Zeile der Lineatur, ggf. mit Schrift darin
+%   \vor{...}         vorgeschriebene Schrift (schwarz)
+%   \nach{...}        Schrift zum Nachspuren (grau)
+%   \reihe{...}       \vor{...}, dann die Zeile voll mit \nach{...}
+%   \anweisung[n]{...} Text in \anweisungsschrift auf n Zeilenplätzen
+%   \leereseite       eine Seite leere Zeilen
+%   \schulschrift     schaltet auf die Schulschrift in Größe der Lineatur
+%
+% Braucht das Paket oesch (CTAN, nicht in TeX Live).
+%
+% Copyright 2026 Stefan Huber. Lizenz: LPPL 1.3c oder neuer.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{schreibvorlage}[2026/11/15 Schreibvorlagen Schulschrift 1995]
+
+\newcommand*{\sv@start}{gross}
+\DeclareOption{gross}{\renewcommand*{\sv@start}{gross}}
+\DeclareOption{klein}{\renewcommand*{\sv@start}{klein}}
+\DeclareOption{keine}{\renewcommand*{\sv@start}{keine}}
+\newif\ifsv@klassisch
+\DeclareOption{klassisch}{\sv@klassischtrue}
+\ProcessOptions\relax
+
+\RequirePackage[a4paper]{geometry}
+\RequirePackage{oesch}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\pagestyle{empty}
+
+\newlength{\band}                                          % Ober-, Mittel-, Unterband
+\newlength{\pitch}                                         % von Zeile zu Zeile
+\newcommand*{\rows}{}                                      % Zeilen pro Seite
+\newlength{\rulewidth}   \setlength{\rulewidth}{175mm}     % Breite der Zeilen
+\newlength{\textindent}  \setlength{\textindent}{2mm}      % Schrift ab Zeilenanfang
+
+\tikzset{
+  frame rule/.style={line width=0.15mm, line cap=rect, black!35},
+  thin rule/.style={line width=0.2mm, line cap=rect},
+  base rule/.style={line width=0.5mm},
+  mid band/.style={fill=black!10},
+}
+\ifsv@klassisch
+  \tikzset{
+    frame rule/.style={thin rule},
+    base rule/.style={line width=0.4mm},
+  }
+\fi
+\colorlet{nachspuren}{black!30}
+\newcommand*{\anweisungsschrift}{\normalfont\sffamily\Large}
+
+% Die Schulschrift, so skaliert, dass ihre x-Höhe das Mittelband füllt.
+\DeclareFontFamily{oe}{oeschsv}{}
+\DeclareFontShape{oe}{oeschsv}{m}{n}{<-> oeschb}{}
+\newlength{\sv@fontsize}
+\newcommand*{\sv@setfont}{%
+  \begingroup
+    \fontsize{20.74}{20.74}\usefont{oe}{oeschsv}{m}{n}%
+    \global\sv@fontsize=\fpeval{20.74 * \the\band / \the\fontdimen5\font}pt
+  \endgroup}
+\setlength{\band}{5mm}
+\sv@setfont
+\newcommand*{\schulschrift}{%
+  \fontsize{\sv@fontsize}{\sv@fontsize}\usefont{oe}{oeschsv}{m}{n}}
+
+\newcommand*{\vor}[1]{{\color{black}#1}}
+\newcommand*{\nach}[1]{{\color{nachspuren}#1}}
+
+% Die Lineaturen unterscheiden sich im Seitenlayout nur in der Texthöhe. Im
+% Dokument wird sie nach einer neuen Seite direkt gesetzt, denn \newgeometry
+% würde die gespiegelten Ränder verlieren bzw. mit twoside eine Leerseite
+% einfügen.
+\geometry{twoside, nohead, nofoot, top=15mm, inner=20mm, textwidth=\rulewidth}
+\newif\ifsv@document
+\AtBeginDocument{\sv@documenttrue}
+\newcommand*{\sv@textheight}[1]{%
+  \ifsv@document
+    \clearpage
+    \setlength{\textheight}{#1}%
+    \setlength{\@colht}{\textheight}%
+    \setlength{\@colroom}{\textheight}%
+    \setlength{\vsize}{\textheight}%
+  \else
+    \geometry{textheight=#1}%
+  \fi}
+
+\newif\ifsv@ruled
+\newcommand*{\sv@ruled}[3]{% Bandhöhe, Zeilenabstand, Zeilen pro Seite
+  \sv@ruledtrue
+  \setlength{\band}{#1}%
+  \setlength{\pitch}{#2}%
+  \renewcommand*{\rows}{#3}%
+  \sv@textheight{\rows\pitch}%
+  \sv@setfont
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{0pt}%
+  \setlength{\topskip}{0pt}}
+\newcommand*{\sv@lineatur@gross}{\sv@ruled{5mm}{21mm}{13}}
+\newcommand*{\sv@lineatur@klein}{\sv@ruled{4mm}{16mm}{17}}
+\newcommand*{\sv@lineatur@keine}{%
+  \sv@ruledfalse
+  \sv@textheight{\dimexpr\paperheight - 35mm\relax}%
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{0.5\baselineskip}%
+  \setlength{\topskip}{10pt}}
+
+\newcommand*{\lineatur}[1]{%
+  \ifcsname sv@lineatur@#1\endcsname
+    \csname sv@lineatur@#1\endcsname
+  \else
+    \PackageError{schreibvorlage}{Unbekannte Lineatur `#1'}
+      {Erlaubt sind gross, klein und keine.}%
+  \fi}
+\lineatur{\sv@start}
+
+\newcommand{\zeile}[1]{%
+  \par\nointerlineskip
+  \begin{tikzpicture}
+    \useasboundingbox (0, 0) rectangle (\rulewidth, -\pitch);
+    \fill[mid band] (0, -\band) rectangle (\rulewidth, -2\band);
+    \draw[frame rule] (0, 0) rectangle (\rulewidth, -3\band);
+    \draw[thin rule] (0, -\band) -- (\rulewidth, -\band);
+    \draw[base rule] (0, -2\band) -- (\rulewidth, -2\band);
+    \node[anchor=base west, inner sep=0pt]
+      at (\textindent, -2\band) {\schulschrift#1};
+  \end{tikzpicture}%
+  \par}
+
+% Vorlage am Zeilenanfang, der Rest der Zeile mit grauen Wiederholungen.
+\newcommand{\reihe}[1]{%
+  \zeile{\hbox to \dimexpr\rulewidth - 2\textindent\relax{%
+    \vor{#1}\quad\xleaders\hbox{\nach{#1}\quad}\hfill}}}
+
+% Text auf #1 Zeilenplätzen, damit die Lineatur im Raster bleibt; die erste
+% Grundlinie liegt auf der Höhe der Grundlinie einer Zeile. Ohne Lineatur ein
+% gewöhnlicher Absatz.
+\newsavebox{\sv@box}
+\newcommand{\anweisung}[2][1]{%
+  \par
+  \ifsv@ruled
+    \nointerlineskip
+    \setbox\sv@box=\vtop{\hsize=\rulewidth \linewidth=\hsize
+      \anweisungsschrift #2\par}%
+    \vbox to #1\pitch{\kern\dimexpr 2\band - \ht\sv@box\relax
+      \box\sv@box\vss}%
+  \else
+    {\anweisungsschrift #2\par}%
+  \fi
+  \par}
+
+\newcommand*{\leereseite}{%
+  \foreach \i in {1,...,\rows} {\zeile{}}%
+  \clearpage}
+
+\endinput

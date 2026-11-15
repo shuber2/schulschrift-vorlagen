@@ -1,0 +1,14 @@
+% !TeX program = pdflatex
+% Übungsblätter zum Alphabet in der Österreichischen Schulschrift 1995: je
+% Buchstabe eine Zeile zum Nachspuren und eine leere Zeile. Für die kleine
+% Lineatur die Option gross durch klein ersetzen.
+\documentclass{article}
+\usepackage[gross]{schreibvorlage}
+
+\begin{document}
+\foreach \buchstabe in {Aa, Bb, Cc, Dd, Ee, Ff, Gg, Hh, Ii, Jj, Kk, Ll, Mm,
+    Nn, Oo, Pp, Qu qu, Rr, Ss, Tt, Uu, Vv, Ww, Xx, Yy, Zz, Ää, Öö, Üü, ß} {
+  \reihe{\buchstabe}
+  \zeile{}
+}
+\end{document}

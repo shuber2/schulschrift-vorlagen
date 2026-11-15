@@ -1,0 +1,34 @@
+% !TeX program = pdflatex
+% Beispiel für die Befehle von schreibvorlage.sty: eine Seite mit großer
+% Lineatur, eine mit kleiner und eine ohne Lineatur.
+\documentclass{article}
+\usepackage[gross]{schreibvorlage}   % oder [klein] oder [keine]
+
+\begin{document}
+\anweisung{Spure nach und schreibe ab:}
+\reihe{Aa}                           % Aa schwarz, dann grau bis zum Zeilenende
+\zeile{}                             % leere Zeile
+\reihe{Mm}
+\zeile{}
+\anweisung{Schreibe die Wörter ab:}
+\zeile{\vor{Mama} \nach{Mama Mama}}  % frei gemischt
+\zeile{}
+\zeile{\vor{Lama} \nach{Lama Lama}}
+\zeile{}
+\zeile{\vor{Alma} \nach{Alma Alma}}
+\zeile{}
+\zeile{}
+
+\lineatur{klein}                     % ab einer neuen Seite kleine Lineatur
+\anweisung[2]{In der kleinen Lineatur. Eine längere Anweisung belegt
+  mehrere Zeilenplätze, damit die Seite im Raster bleibt.}
+\reihe{Ll}
+\zeile{}
+\reihe{Lamm}
+\zeile{}
+\foreach \i in {1,...,11} {\zeile{}}
+
+\lineatur{keine}                     % Seiten mit gewöhnlichem Text
+\section*{Ohne Lineatur}
+Gewöhnlicher Text, und mit {\schulschrift Mama} auch in Schulschrift.
+\end{document}
